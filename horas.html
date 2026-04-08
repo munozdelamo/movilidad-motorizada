@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Movilidad Motorizada</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial;
+      background: #A8102A;
+      color: white;
+      text-align: center;
+    }
+
+    canvas {
+      background: white;
+      margin-top: 20px;
+	  border-radius: 8px;
+    }
+	
+	#tiempoChart {
+		width: 650px !important;   /* aumenta el ancho */
+		height: 400px !important;   /* aumenta la altura */
+		margin: auto;
+	}
+
+	#sesionesChart {
+		width: 650px !important;   /* aumenta el ancho */
+		height: 400px !important;   /* aumenta la altura */
+		margin: auto;
+	}
+    /* HEADER */
+
+header {
+        background: #ffffff;
+        border-bottom: 6px solid #A8102A; /* rojo corporativo */
+        padding: 20px;
+        font-family: "Segoe UI", sans-serif;
+        text-align: center;
+    }
+
+    .top-logos {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .top-logos img {
+        height: 40px;
+        object-fit: contain;
+    }
+
+    .title-container h1 {
+        color: #A8102A; /* rojo */
+        font-size: 1.5rem;
+        margin: 5px 0;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+
+    .title-container h2 {
+        color: #234A7D; /* azul */
+        font-size: 1.4rem;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    header h1 {
+      font-size: 28px;
+    }
+
+    /* MAIN */
+    main {
+      padding: 20px;
+    }
+
+    /* GRID PARA GRÁFICAS */
+    .charts-container {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* TARJETAS */
+    article {
+      background: #001833;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      flex: 1 1 700px;
+      max-width: 800px;
+    }
+
+    article h2 {
+      margin-bottom: 15px;
+      font-size: 18px;
+      text-align: center;
+    }
+
+
+    /* FOOTER */
+    footer {
+      background: #111;
+      text-align: center;
+      padding: 15px;
+      margin-top: 30px;
+      border-top: 2px solid #333;
+      font-size: 14px;
+      color: #aaa;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .charts-container {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+	.menu {
+	  background: #002855;
+	  border-bottom: 2px solid #333;
+	}
+
+	.menu ul {
+	  list-style: none;
+	  display: flex;              /* 👈 horizontal */
+	  justify-content: center;    /* centrado */
+	  padding: 10px 0;
+	  margin: 0;
+	}
+
+	.menu li {
+	  margin: 0 20px;             /* espacio entre opciones */
+	}
+
+	.menu a {
+	  color: white;               /* 👈 texto blanco */
+	  text-decoration: none;
+	  font-weight: bold;
+	  transition: color 0.3s;
+	}
+
+	/* Hover bonito */
+	.menu a:hover {
+	  color: #00c3ff;
+	}
+	
+		.week-buttons {
+	  margin-top: 15px;
+	  display: flex;
+	  flex-wrap: wrap;
+	  justify-content: center;
+	  gap: 6px;
+	}
+
+	.week-buttons button {
+	  background: #ffffff;
+	  color: #001833;
+	  border: none;
+	  border-radius: 6px;
+	  padding: 4px 8px;
+	  font-size: 12px;
+	  cursor: pointer;
+	  min-width: 32px;
+	}
+
+	.week-buttons button:hover {
+	  background: #00c3ff;
+	  color: #000;
+	}
+
+	.week-buttons button.active {
+	  background: #A8102A;
+	  color: white;
+	}
+  </style>
+</head>
+
+<body>
+
+
+<header>
+    <div class="top-logos">
+        <img src="bienestar.jpg" alt="Consejería de Bienestar Social">
+		<img src="maestre.jpg" alt="Logo IES Maestre de Calatrava">
+        <img src="educacion.jpg" alt="Consejería de Educación, Cultura y Deportes">
+    </div>
+
+    <div class="title-container">
+        <h1>Proyecto de Movilidad Motorizada</h1>
+        <h2>Seguimiento del uso y evolución del usuario</h2>
+    </div>
+</header>
+
+<nav class="menu">
+  <ul>
+    <li><a href="#">Inicio</a></li>
+    <li><a href="#">Estadísticas</a></li>
+    <li><a href="#">Progreso</a></li>
+    <li><a href="#">Configuración</a></li>
+	<li><a href="#">Seleccionar Usuario</a></li>
+		<select id="usuarioSelect">
+		<option value="">Cargando usuarios...</option>
+  </select>
+
+  </ul>
+</nav>
+<main>
+
+  <section class="charts-container">
+
+    <article>
+      <h2>📊 Tiempo de uso por día</h2>
+      <canvas id="tiempoChart"></canvas>
+	  <div class="week-buttons" data-chart="tiempo">
+	  
+		  <button data-week="0">1</button>
+		  <button data-week="1">2</button>
+		  <button data-week="2">3</button>
+		  <button data-week="3">4</button>
+		  <button data-week="4">5</button>
+		  <button data-week="5">6</button>
+		  <button data-week="6">7</button>
+		  <button data-week="7">8</button>
+		  <button data-week="8">9</button>
+		  <button data-week="9">10</button>
+		  <button data-week="10">11</button>
+		  <button data-week="11">12</button>
+
+	  </div>
+    </article>
+
+    <article>
+      <h2>📈 Análisis de sesiones</h2>
+      <canvas id="sesionesChart"></canvas>
+	  <div class="week-buttons" data-chart="sesiones">
+		<button data-session-week="0">1</button>
+		  <button data-session-week="1">2</button>
+		  <button data-session-week="2">3</button>
+		  <button data-session-week="3">4</button>
+		  <button data-session-week="4">5</button>
+		  <button data-session-week="5">6</button>
+		  <button data-session-week="6">7</button>
+		  <button data-session-week="7">8</button>
+		  <button data-session-week="8">9</button>
+		  <button data-session-week="9">10</button>
+		  <button data-session-week="10">11</button>
+		  <button data-session-week="11">12</button>
+	  </div>
+    </article>
+
+  </section>
+
+</main>
+
+<footer>
+  <p>© 2026 Proyecto Movilidad Motorizada</p>
+</footer>
+</head>
+
+<script type="module">
+
+const BASE_URL = "https://movilidad-motorizada-default-rtdb.europe-west1.firebasedatabase.app";
+/*
+// 🔥 1. Obtener datos
+async function getMovimiento() {
+  const res = await fetch(BASE_URL + "/movimiento.json");
+  return await res.json();
+}
+
+// 🔥 1. Obtener datos de sesiones
+async function getSesiones() {
+  const res = await fetch("https://movilidad-motorizada-default-rtdb.europe-west1.firebasedatabase.app/sesiones.json");
+  return await res.json();
+}*/
+
+
+/**
+ * 🔥 Obtener datos de movimiento para un usuario
+ * Si no hay usuario, devuelve un objeto vacío
+ */
+async function getMovimiento(usuario) {
+  if (!usuario) {
+    console.log("⛔ No hay usuario seleccionado → movimiento vacío");
+    return {};
+  }
+
+  const url = `${BASE_URL}/${usuario}/movimiento.json`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+//console.log(JSON.stringify(data, null, 2));
+  return data || {};
+}
+
+let chartSesiones = null;
+let chartTiempo = null;
+
+/**
+ * 🔥 Obtener sesiones para un usuario
+ * Si no hay usuario, devuelve un objeto vacío
+ */
+async function getSesiones(usuario) {
+  if (!usuario) {
+    console.log("⛔ No hay usuario seleccionado → sesiones vacías");
+    return {};
+  }
+
+  const url = `${BASE_URL}/${usuario}/sesiones.json`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+  return data || {};
+}
+
+
+// ⏱️ 2. Convertir ms → hh:mm:ss
+function msToTime(ms) {
+  let totalSeconds = Math.floor(ms / 1000);
+
+  let h = Math.floor(totalSeconds / 3600);
+  let m = Math.floor((totalSeconds % 3600) / 60);
+  let s = totalSeconds % 60;
+
+  return (
+    String(h).padStart(2, '0') + ":" +
+    String(m).padStart(2, '0') + ":" +
+    String(s).padStart(2, '0')
+  );
+}
+
+// 📊 3. Procesar datos
+function procesarDatos(data) {
+  const fechas = Object.keys(data).sort();
+
+  const tiempos = fechas.map(f => data[f].tiempo / 1000); // en segundos
+
+  return { fechas, tiempos };
+}
+// Los datos obtenidos los dividimos en semanas para mostrar una por una
+function dividirEnSemanas(fechas, valores) {
+  const semanas = [];
+
+  for (let i = 0; i < fechas.length; i += 7) {
+    semanas.push({
+      fechas: fechas.slice(i, i + 7),
+      valores: valores.slice(i, i + 7)
+    });
+  }
+
+  return semanas;
+}
+
+// 📈 4. Crear gráfica
+function crearGrafica(fechas, tiempos) {
+  return new Chart(document.getElementById("tiempoChart"), {
+    type: "bar",
+    data: {
+      labels: fechas,
+      datasets: [{
+        label: "Tiempo de uso",
+        data: tiempos
+      }]
+    },
+    options: {
+      responsive: false,
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return "Tiempo: " + msToTime(context.raw * 1000);
+            }
+          }
+        }
+      },
+      scales: {
+		x: {
+          ticks: {
+            font: {
+              size: 8
+            }
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: "Tiempo (hh:mm:ss)"
+          },
+          ticks: {
+			font: {
+              size: 8
+            },
+            callback: function(value) {
+              return msToTime(value * 1000);
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// 🚀 5. Ejecutar
+getMovimiento().then(data => {
+  const { fechas, tiempos } = procesarDatos(data);
+  chartTiempo = crearGrafica(fechas, tiempos);
+});
+
+function procesarSesiones(data) {
+  const resultado = {};
+
+  const fechas = Object.keys(data).sort();
+
+  fechas.forEach(fecha => {
+    const sesiones = data[fecha];
+
+    let totalAceleraciones = 0;
+    let totalColisiones = 0;
+    let totalParadas = 0;
+    let totalTiempo = 0;
+
+    let totalEstabilidad = 0;
+    let totalScore = 0;
+    let count = 0;
+
+    for (let id in sesiones) {
+      const s = sesiones[id];
+
+      totalAceleraciones += s.aceleraciones_bruscas || 0;
+      totalColisiones += s.colisiones || 0;
+      totalParadas += s.paradas_bruscas || 0;
+      totalTiempo += s.tiempo_movimiento || 0;
+
+      totalEstabilidad += s.estabilidad || 0;
+      totalScore += s.score || 0;
+
+      count++;
+    }
+
+    resultado[fecha] = {
+      aceleraciones: totalAceleraciones,
+      colisiones: totalColisiones,
+      paradas: totalParadas,
+      tiempo: totalTiempo / 1000, // a segundos
+      estabilidad: count ? totalEstabilidad / count : 0,
+      score: count ? totalScore / count : 0
+    };
+  });
+
+  return resultado;
+}
+
+function crearGraficaSesiones(datos) {
+  const fechas = Object.keys(datos);
+
+  return new Chart(document.getElementById("sesionesChart"), {
+    type: "bar",
+    data: {
+      labels: fechas,
+      datasets: [
+        {
+          label: "Aceleraciones",
+          data: fechas.map(f => datos[f].aceleraciones)
+        },
+        {
+          label: "Colisiones",
+          data: fechas.map(f => datos[f].colisiones)
+        },
+        {
+          label: "Paradas",
+          data: fechas.map(f => datos[f].paradas)
+        },
+        {
+          label: "Tiempo (s)",
+          data: fechas.map(f => datos[f].tiempo)
+        },
+        {
+          label: "Estabilidad (media)",
+          type: "line",
+          data: fechas.map(f => datos[f].estabilidad),
+          yAxisID: 'y1'
+        },
+        {
+          label: "Score (medio)",
+          type: "line",
+          data: fechas.map(f => datos[f].score),
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Eventos / Tiempo"
+          }
+        },
+        y1: {
+          position: 'right',
+          beginAtZero: true,
+          max: 100,
+          title: {
+            display: true,
+            text: "Score / Estabilidad"
+          },
+          grid: {
+            drawOnChartArea: false
+          }
+        }
+      }
+    }
+  });
+}
+
+getSesiones().then(data => {
+  const datosProcesados = procesarSesiones(data);
+  chartSesiones = crearGraficaSesiones(datosProcesados);
+});
+
+
+	function resetCanvas(id) {
+		console.log("Id canvas: "+id);
+		const oldCanvas = document.getElementById(id);
+		
+		
+		if (oldCanvas) {
+				console.warn(`⚠️ Canvas con ID "${id}" será eliminado`);
+				
+				const parent = oldCanvas.parentNode;
+				
+				// Eliminar
+				parent.removeChild(oldCanvas);
+
+				// Crear uno nuevo
+				const newCanvas = document.createElement("canvas");
+				newCanvas.id = id;
+				parent.appendChild(newCanvas);
+
+				return newCanvas.getContext("2d");
+				//return null; 
+		}
+}
+
+
+//Firebase scripts
+  
+    // ✅ Importar Firebase (v9)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+    // ✅ Configuración de tu proyecto (ajusta si es necesario)
+    const firebaseConfig = {
+      databaseURL: "https://movilidad-motorizada-default-rtdb.europe-west1.firebasedatabase.app/"
+    };
+
+    // ✅ Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // ✅ Elemento select
+    const usuarioSelect = document.getElementById("usuarioSelect");
+
+    // ✅ Cargar usuarios desde raíz del Realtime Database
+    function cargarUsuarios() {
+      const rootRef = ref(db, "/");
+
+      get(rootRef)
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+
+            // ✅ Vaciar select
+            usuarioSelect.innerHTML = "";
+			// Insertamos un elemento vacío para obligar a seleccionar un usuario
+			const optionVac = document.createElement("option");
+              optionVac.value = "";
+              optionVac.textContent = "Selecciona un paciente";
+              usuarioSelect.appendChild(optionVac);
+            // ✅ Recorrer claves (nombres de usuarios)
+            Object.keys(data).forEach((usuario) => {
+              const option = document.createElement("option");
+              option.value = usuario;
+              option.textContent = usuario;
+              usuarioSelect.appendChild(option);
+            });
+          } else {
+            usuarioSelect.innerHTML = "<option>No hay usuarios registrados</option>";
+          }
+        })
+        .catch((error) => {
+          console.error("Error obteniendo usuarios:", error);
+          usuarioSelect.innerHTML = "<option>Error al cargar</option>";
+        });
+    }
+
+    // ✅ Ejecutar al cargar la página
+    cargarUsuarios();
+
+	const selectUsuario = document.getElementById("usuarioSelect");
+
+
+	selectUsuario.addEventListener("change", async () => {
+    
+	const usuario = selectUsuario.value;
+	if (!usuario) {
+        if (chartTiempo) chartTiempo.destroy();
+        if (chartSesiones) chartSesiones.destroy();
+        return;
+    }
+
+    const movimiento = await getMovimiento(usuario);
+    const sesiones = await getSesiones(usuario);
+
+    // ✅ Destruir gráficas anteriores
+    if (chartTiempo) chartTiempo.destroy();
+    if (chartSesiones) chartSesiones.destroy();
+
+    // ✅ Crear nuevas
+    const { fechas, tiempos } = procesarDatos(movimiento);
+	
+	// 1️⃣ Dividir en semanas
+	const semanasTiempo = dividirEnSemanas(fechas, tiempos);
+
+
+
+	const botonesTiempo = document.querySelectorAll(
+	  '.week-buttons[data-chart="tiempo"] button'
+	);
+
+	botonesTiempo.forEach((btn, index) => {
+	  btn.addEventListener("click", () => {
+		cargarSemanaTiempo(index, botonesTiempo);
+	  });
+	});
+	// La llamamos cada vez que pulsamos un botón para cargar
+	// los datos de la semana correspondiente
+	function cargarSemanaTiempo(index, botones) {
+	  if (!semanasTiempo[index]) return;
+
+	  // Marcar botón activo
+	  botones.forEach(b => b.classList.remove("active"));
+	  botones[index].classList.add("active");
+
+	  // Redibujar gráfica
+	  if (chartTiempo) chartTiempo.destroy();
+
+	  chartTiempo = crearGrafica(
+		semanasTiempo[index].fechas,
+		semanasTiempo[index].valores
+	  );
+	}
+
+
+	// 2️⃣ Si hay semanas, pintar la primera
+	if (semanasTiempo.length > 0) {
+	  if (chartTiempo) chartTiempo.destroy();
+
+	  chartTiempo = crearGrafica(
+		semanasTiempo[0].fechas,
+		semanasTiempo[0].valores
+	  );
+
+	}
+    //chartTiempo = crearGrafica(fechas, tiempos);
+
+    const datosProcesados = procesarSesiones(sesiones);
+    chartSesiones = crearGraficaSesiones(datosProcesados);
+	
+});
+
+</script>
+
+</body>
+</html>
