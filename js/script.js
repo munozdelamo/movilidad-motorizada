@@ -11,7 +11,306 @@ async function getSesiones() {
   const res = await fetch("https://movilidad-motorizada-default-rtdb.europe-west1.firebasedatabase.app/sesiones.json");
   return await res.json();
 }*/
+// Variable global para la gráfica de tiempo, así podemos destruirla y crear una nueva al cambiar de usuario
+let chartTiempoModal = null;
 
+// Detectamos el click en la gráfica de tiempo para abrir el modal
+document
+    .getElementById("tiempoChart")
+    .addEventListener("click", () => {
+        abrirModalTiempo();
+    });
+// Función para abrir el modal con la gráfica ampliada
+function abrirModalTiempo() {
+    const modal = document.getElementById("modalTiempo");
+    modal.style.display = "block";
+
+    const ctx = document
+        .getElementById("tiempoChartModal")
+        .getContext("2d");
+
+// Mostrar solo las semanas existentes
+    botonesTiempoModal.forEach((btn, i) => {
+        btn.style.display = semanasTiempo[i] ? "inline-block" : "none";
+        btn.classList.remove("active");
+    });
+
+    // Evitar duplicados
+    if (chartTiempoModal) {
+        chartTiempoModal.destroy();
+    }
+
+    chartTiempoModal = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: chartTiempo.data.labels,
+            datasets: chartTiempo.data.datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return "Tiempo: " +
+                                msToTime(context.raw * 1000);
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        callback: value =>
+                            msToTime(value * 1000)
+                    }
+                }
+            }
+        }
+    });
+}
+
+document
+    .getElementById("cerrarModalTiempo")
+    .addEventListener("click", cerrarModalTiempo);
+
+// Función para cerrar el modal y destruir la gráfica ampliada
+    function cerrarModalTiempo() {
+    const modal = document.getElementById("modalTiempo");
+    modal.style.display = "none";
+
+    if (chartTiempoModal) {
+        chartTiempoModal.destroy();
+        chartTiempoModal = null;
+    }
+}
+
+
+const botonesTiempoModal = document.querySelectorAll(
+    '.modal-buttons button[data-modal]'
+);
+
+botonesTiempoModal.forEach(btn => {
+    btn.addEventListener("click", () => {
+        const index = Number(btn.dataset.modal);
+        cargarSemanaTiempoModal(index);
+    });
+});
+
+function cargarSemanaTiempoModal(index) {
+    if (!semanasTiempo[index]) return;
+
+    // Marcar botón activo
+    botonesTiempoModal.forEach(b => b.classList.remove("active"));
+    botonesTiempoModal[index]?.classList.add("active");
+
+    // Redibujar gráfica del modal
+    if (chartTiempoModal) {
+        chartTiempoModal.destroy();
+    }
+
+    const ctx = document
+        .getElementById("tiempoChartModal")
+        .getContext("2d");
+
+    chartTiempoModal = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: semanasTiempo[index].fechas,
+            datasets: [
+                {
+                    label: "Tiempo de uso",
+                    data: semanasTiempo[index].valores
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: ctx =>
+                            "Tiempo: " +
+                            msToTime(ctx.raw * 1000)
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        callback: v => msToTime(v * 1000)
+                    }
+                }
+            }
+        }
+    });
+}
+/**
+ * Funciones para obtener la ventana modal de sesiones, abrirla, cerrarla y cargar los datos de la semana seleccionada. 
+ */
+
+// Variable global para la gráfica de sesiones en el modal
+let chartSesionesModal = null;
+
+document
+    .getElementById("sesionesChart")
+    .addEventListener("click", () => {
+        abrirModalSesiones();
+    });
+
+function abrirModalSesiones() {
+    const modal = document.getElementById("modalSesiones");
+    modal.style.display = "block";
+
+    const ctx = document
+        .getElementById("sesionesChartModal")
+        .getContext("2d");
+
+    // Mostrar solo semanas existentes
+    botonesSesionesModal.forEach((btn, i) => {
+        btn.style.display = semanasSesiones[i] ? "inline-block" : "none";
+        btn.classList.remove("active");
+    });
+
+    // Evitar duplicados
+    if (chartSesionesModal) {
+        chartSesionesModal.destroy();
+    }
+
+    // Copiamos datos de la gráfica principal
+    chartSesionesModal = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: chartSesiones.data.labels,
+            datasets: chartSesiones.data.datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                },
+                y1: {
+                    position: 'right',
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+document
+    .getElementById("cerrarModalSesiones")
+    .addEventListener("click", cerrarModalSesiones);
+
+function cerrarModalSesiones() {
+    const modal = document.getElementById("modalSesiones");
+    modal.style.display = "none";
+
+    if (chartSesionesModal) {
+        chartSesionesModal.destroy();
+        chartSesionesModal = null;
+    }
+}
+
+
+const botonesSesionesModal = document.querySelectorAll(
+    '.modal-buttons button[data-sesiones]'
+);
+
+botonesSesionesModal.forEach(btn => {
+    btn.addEventListener("click", () => {
+        const index = Number(btn.dataset.sesiones);
+        cargarSemanaSesionesModal(index);
+    });
+});
+
+// Cargar datos de la semana seleccionada en el modal de sesiones
+function cargarSemanaSesionesModal(index) {
+    if (!semanasSesiones[index]) return;
+
+    // Marcar botón activo
+    botonesSesionesModal.forEach(b => b.classList.remove("active"));
+    botonesSesionesModal[index]?.classList.add("active");
+
+    // Redibujar gráfica
+    if (chartSesionesModal) {
+        chartSesionesModal.destroy();
+    }
+
+    const ctx = document
+        .getElementById("sesionesChartModal")
+        .getContext("2d");
+
+    chartSesionesModal = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: semanasSesiones[index].fechas,
+            datasets: [
+                {
+                    label: "Aceleraciones",
+                    data: semanasSesiones[index].aceleraciones
+                },
+                {
+                    label: "Colisiones",
+                    data: semanasSesiones[index].colisiones
+                },
+                {
+                    label: "Paradas",
+                    data: semanasSesiones[index].paradas
+                },
+                {
+                    label: "Tiempo (s)",
+                    data: semanasSesiones[index].tiempo
+                },
+                {
+                    label: "Estabilidad (media)",
+                    type: "line",
+                    data: semanasSesiones[index].estabilidad,
+                    yAxisID: "y1"
+                },
+                {
+                    label: "Score (medio)",
+                    type: "line",
+                    data: semanasSesiones[index].score,
+                    yAxisID: "y1"
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                },
+                y1: {
+                    position: 'right',
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
+            }
+        }
+    });
+}
 
 /**
  * 🔥 Obtener datos de movimiento para un usuario
@@ -69,10 +368,13 @@ function msToTime(ms) {
 
 // 📊 3. Procesar datos
 function procesarDatos(data) {
+    
     const fechas = Object.keys(data).sort();
 
     const tiempos = fechas.map(f => data[f].tiempo / 1000); // en segundos
 
+    console.log("Datos crudos de movimiento: fechas", fechas);
+    console.log("Datos crudos de movimiento: tiempos", tiempos);
     return { fechas, tiempos };
 }
 // Los datos obtenidos los dividimos en semanas para mostrar una por una
@@ -232,21 +534,51 @@ function crearGraficaSesiones(datos) {
                 mode: 'index',
                 intersect: false
             },
+            plugins: {
+                legend: {
+                labels: {
+                    font: { size: 9 }
+                }
+                },
+                tooltip: {
+                bodyFont: { size: 6 },
+                titleFont: { size: 6 }
+                }
+            },
             scales: {
+                x: {
+                    ticks: {
+                        font: {
+                            size: 8
+                        }
+                    }
+                },
                 y: {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: "Eventos / Tiempo"
+                        text: "Eventos / Tiempo",
+                        font: {
+                            size: 6
+                        }
                     }
                 },
+                
                 y1: {
                     position: 'right',
                     beginAtZero: true,
                     max: 100,
+                    ticks: {
+                        font: {
+                        size: 6
+                        }
+                    },
                     title: {
                         display: true,
-                        text: "Score / Estabilidad"
+                        text: "Score / Estabilidad",
+                        font: {
+                            size: 6
+                        }
                     },
                     grid: {
                         drawOnChartArea: false
@@ -344,9 +676,41 @@ cargarUsuarios();
 const selectUsuario = document.getElementById("usuarioSelect");
 
 
+const botonesTiempo = document.querySelectorAll(
+    '.week-buttons[data-chart="tiempo"] button'
+);
+
+botonesTiempo.forEach((btn, index) => {
+    btn.addEventListener("click", () => {
+        cargarSemanaTiempo(index);
+    });
+});
+let semanasTiempo = [];
+
+// La llamamos cada vez que pulsamos un botón para cargar
+// los datos de la semana correspondiente
+function cargarSemanaTiempo(index, botones) {
+    if (!semanasTiempo[index]) return;
+
+    // Marcar botón activo
+    botonesTiempo.forEach(b => b.classList.remove("active"));
+    botonesTiempo[index].classList.add("active");
+
+    // Redibujar gráfica
+    if (chartTiempo) chartTiempo.destroy();
+
+    chartTiempo = crearGrafica(
+        semanasTiempo[index].fechas,
+        semanasTiempo[index].valores
+    );
+}
+
 selectUsuario.addEventListener("change", async () => {
 
     const usuario = selectUsuario.value;
+    
+    semanasTiempo = []; // 🔥 reset total
+
     if (!usuario) {
         if (chartTiempo) chartTiempo.destroy();
         if (chartSesiones) chartSesiones.destroy();
@@ -364,37 +728,7 @@ selectUsuario.addEventListener("change", async () => {
     const { fechas, tiempos } = procesarDatos(movimiento);
 
     // 1️⃣ Dividir en semanas
-    const semanasTiempo = dividirEnSemanas(fechas, tiempos);
-
-
-
-    const botonesTiempo = document.querySelectorAll(
-        '.week-buttons[data-chart="tiempo"] button'
-    );
-
-    botonesTiempo.forEach((btn, index) => {
-        btn.addEventListener("click", () => {
-            cargarSemanaTiempo(index, botonesTiempo);
-        });
-    });
-    // La llamamos cada vez que pulsamos un botón para cargar
-    // los datos de la semana correspondiente
-    function cargarSemanaTiempo(index, botones) {
-        if (!semanasTiempo[index]) return;
-
-        // Marcar botón activo
-        botones.forEach(b => b.classList.remove("active"));
-        botones[index].classList.add("active");
-
-        // Redibujar gráfica
-        if (chartTiempo) chartTiempo.destroy();
-
-        chartTiempo = crearGrafica(
-            semanasTiempo[index].fechas,
-            semanasTiempo[index].valores
-        );
-    }
-
+    semanasTiempo = dividirEnSemanas(fechas, tiempos);
 
     // 2️⃣ Si hay semanas, pintar la primera
     if (semanasTiempo.length > 0) {
