@@ -1,28 +1,196 @@
+/*************************************************
+ * 1. CONSTANTES Y CONFIGURACIÓN
+ *************************************************/
+Chart.defaults.devicePixelRatio = window.devicePixelRatio || 1;
 const BASE_URL = "https://movilidad-motorizada-default-rtdb.europe-west1.firebasedatabase.app";
-/*
-// 🔥 1. Obtener datos
-async function getMovimiento() {
-  const res = await fetch(BASE_URL + "/movimiento.json");
-  return await res.json();
-}
- 
-// 🔥 1. Obtener datos de sesiones
-async function getSesiones() {
-  const res = await fetch("https://movilidad-motorizada-default-rtdb.europe-west1.firebasedatabase.app/sesiones.json");
-  return await res.json();
-}*/
-// Variable global para la gráfica de tiempo, así podemos destruirla y crear una nueva al cambiar de usuario
-let chartTiempoModal = null;
-let semanasSesiones = [];
-let chartSesiones = null;
-let chartTiempo = null;
 
-// Detectamos el click en la gráfica de tiempo para abrir el modal
-document
-    .getElementById("tiempoChart")
-    .addEventListener("click", () => {
-        abrirModalTiempo();
+// Variable global para la gráfica de tiempo, así podemos destruirla y crear una nueva al cambiar de usuario
+
+/*************************************************
+ * 2. ESTADO GLOBAL DE LA APLICACIÓN
+ *************************************************/
+
+// Gráficas principales
+let chartTiempo = null;
+let chartSesiones = null;
+
+// Gráficas modales
+let chartTiempoModal = null;
+let chartSesionesModal = null;
+
+// Datos agrupados por semanas
+let semanasTiempo = [];
+let semanasSesiones = [];
+
+
+/*************************************************
+ * 3. FUNCIONES UTILITARIAS
+ *************************************************/
+
+// ⏱️ Convertir milisegundos a hh:mm:ss
+function msToTime(ms) {
+  let totalSeconds = Math.floor(ms / 1000);
+  let h = Math.floor(totalSeconds / 3600);
+  let m = Math.floor((totalSeconds % 3600) / 60);
+  let s = totalSeconds % 60;
+
+  return (
+    String(h).padStart(2, "0") + ":" +
+    String(m).padStart(2, "0") + ":" +
+    String(s).padStart(2, "0")
+  );
+}
+
+/*************************************************
+ * 4. PROCESADO DE DATOS
+ *************************************************/
+
+// 🔹 Movimiento (tiempo)
+function procesarDatosMovimiento(data) {
+  const fechas = Object.keys(data).sort();
+  const tiempos = fechas.map(f => data[f].tiempo / 1000);
+  return { fechas, tiempos };
+}
+
+// 🔹 Sesiones (agregadas por día)
+function procesarSesiones(data) {
+  const resultado = {};
+  const fechas = Object.keys(data).sort();
+
+  fechas.forEach(fecha => {
+    const sesiones = data[fecha];
+
+    let totalAceleraciones = 0;
+    let totalColisiones = 0;
+    let totalParadas = 0;
+    let totalTiempo = 0;
+    let totalEstabilidad = 0;
+    let totalScore = 0;
+    let count = 0;
+
+    for (let id in sesiones) {
+      const s = sesiones[id];
+      totalAceleraciones += s.aceleraciones_bruscas || 0;
+      totalColisiones += s.colisiones || 0;
+      totalParadas += s.paradas_bruscas || 0;
+      totalTiempo += s.tiempo_movimiento || 0;
+      totalEstabilidad += s.estabilidad || 0;
+      totalScore += s.score || 0;
+      count++;
+    }
+
+    resultado[fecha] = {
+      aceleraciones: totalAceleraciones,
+      colisiones: totalColisiones,
+      paradas: totalParadas,
+      tiempo: totalTiempo / 1000,
+      estabilidad: count ? totalEstabilidad / count : 0,
+      score: count ? totalScore / count : 0
+    };
+  });
+
+  return resultado;
+}
+
+/*************************************************
+ * 5. AGRUPACIÓN DE DATOS POR SEMANAS
+ *************************************************/
+
+// Tiempo
+function dividirEnSemanas(fechas, valores) {
+  const semanas = [];
+  for (let i = 0; i < fechas.length; i += 7) {
+    semanas.push({
+      fechas: fechas.slice(i, i + 7),
+      valores: valores.slice(i, i + 7)
     });
+  }
+  return semanas;
+}
+
+// Sesiones (estructura completa)
+function dividirSesionesEnSemanas(datosProcesados) {
+  const fechas = Object.keys(datosProcesados).sort();
+  const semanas = [];
+
+  for (let i = 0; i < fechas.length; i += 7) {
+    const bloque = fechas.slice(i, i + 7);
+
+    semanas.push({
+      fechas: bloque,
+      aceleraciones: bloque.map(f => datosProcesados[f].aceleraciones),
+      colisiones: bloque.map(f => datosProcesados[f].colisiones),
+      paradas: bloque.map(f => datosProcesados[f].paradas),
+      tiempo: bloque.map(f => datosProcesados[f].tiempo),
+      estabilidad: bloque.map(f => datosProcesados[f].estabilidad),
+      score: bloque.map(f => datosProcesados[f].score)
+    });
+  }
+
+  return semanas;
+}
+
+
+/*************************************************
+ * 6. CREACIÓN DE GRÁFICAS
+ *************************************************/
+
+// Tiempo
+function crearGrafica(fechas, tiempos) {
+    return new Chart(document.getElementById("tiempoChart"), {
+        type: "bar",
+        data: {
+            labels: fechas,
+            datasets: [{
+                label: "Tiempo de uso",
+                data: tiempos
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return "Tiempo: " + msToTime(context.raw * 1000);
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        font: {
+                            size: 10
+                        }
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: "Tiempo (hh:mm:ss)"
+                    },
+                    ticks: {
+                        font: {
+                            size: 10
+                        },
+                        callback: function (value) {
+                            return msToTime(value * 1000);
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+
+/*************************************************
+ * 7. MODALES
+ *************************************************/
+
+// Modal tiempo
 // Función para abrir el modal con la gráfica ampliada
 function abrirModalTiempo() {
     const modal = document.getElementById("modalTiempo");
@@ -119,10 +287,6 @@ if (semanasSesiones.length > 0) {
     );
 }
 
-document
-    .getElementById("cerrarModalTiempo")
-    .addEventListener("click", cerrarModalTiempo);
-
 // Función para cerrar el modal y destruir la gráfica ampliada
 function cerrarModalTiempo() {
     const modal = document.getElementById("modalTiempo");
@@ -134,6 +298,116 @@ function cerrarModalTiempo() {
     }
 }
 
+// Modal sesiones
+function abrirModalSesiones() {
+    const modal = document.getElementById("modalSesiones");
+    modal.style.display = "block";
+
+    const ctx = document
+        .getElementById("sesionesChartModal")
+        .getContext("2d");
+
+    // Mostrar solo semanas existentes
+    botonesSesionesModal.forEach((btn, i) => {
+        btn.style.display = semanasSesiones[i] ? "inline-block" : "none";
+        btn.classList.remove("active");
+    });
+
+    // Evitar duplicados
+    if (chartSesionesModal) {
+        chartSesionesModal.destroy();
+    }
+
+    // Copiamos datos de la gráfica principal
+    chartSesionesModal = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: chartSesiones.data.labels,
+            datasets: chartSesiones.data.datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                },
+                y1: {
+                    position: 'right',
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+function cerrarModalSesiones() {
+    const modal = document.getElementById("modalSesiones");
+    modal.style.display = "none";
+
+    if (chartSesionesModal) {
+        chartSesionesModal.destroy();
+        chartSesionesModal = null;
+    }
+}
+
+
+/*************************************************
+ * 8. FIREBASE – USUARIOS
+ *************************************************/
+
+// ✅ Cargar usuarios desde raíz del Realtime Database
+function cargarUsuarios() {
+    const rootRef = ref(db, "/");
+
+    get(rootRef)
+        .then((snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+
+                // ✅ Vaciar select
+                usuarioSelect.innerHTML = "";
+                // Insertamos un elemento vacío para obligar a seleccionar un usuario
+                const optionVac = document.createElement("option");
+                optionVac.value = "";
+                optionVac.textContent = "Selecciona un paciente";
+                usuarioSelect.appendChild(optionVac);
+                // ✅ Recorrer claves (nombres de usuarios)
+                Object.keys(data).forEach((usuario) => {
+                    const option = document.createElement("option");
+                    option.value = usuario;
+                    option.textContent = usuario;
+                    usuarioSelect.appendChild(option);
+                });
+            } else {
+                usuarioSelect.innerHTML = "<option>No hay usuarios registrados</option>";
+            }
+        })
+        .catch((error) => {
+            console.error("Error obteniendo usuarios:", error);
+            usuarioSelect.innerHTML = "<option>Error al cargar</option>";
+        });
+}
+
+
+// Detectamos el click en la gráfica de tiempo para abrir el modal
+document
+    .getElementById("tiempoChart")
+    .addEventListener("click", () => {
+        abrirModalTiempo();
+    });
+
+document
+    .getElementById("cerrarModalTiempo")
+    .addEventListener("click", cerrarModalTiempo);
 
 const botonesTiempoModal = document.querySelectorAll(
     '.modal-buttons button[data-modal]'
@@ -195,12 +469,10 @@ function cargarSemanaTiempoModal(index) {
         }
     });
 }
+
 /**
  * Funciones para obtener la ventana modal de sesiones, abrirla, cerrarla y cargar los datos de la semana seleccionada. 
  */
-
-// Variable global para la gráfica de sesiones en el modal
-let chartSesionesModal = null;
 
 document
     .getElementById("sesionesChart")
@@ -208,70 +480,9 @@ document
         abrirModalSesiones();
     });
 
-function abrirModalSesiones() {
-    const modal = document.getElementById("modalSesiones");
-    modal.style.display = "block";
-
-    const ctx = document
-        .getElementById("sesionesChartModal")
-        .getContext("2d");
-
-    // Mostrar solo semanas existentes
-    botonesSesionesModal.forEach((btn, i) => {
-        btn.style.display = semanasSesiones[i] ? "inline-block" : "none";
-        btn.classList.remove("active");
-    });
-
-    // Evitar duplicados
-    if (chartSesionesModal) {
-        chartSesionesModal.destroy();
-    }
-
-    // Copiamos datos de la gráfica principal
-    chartSesionesModal = new Chart(ctx, {
-        type: "bar",
-        data: {
-            labels: chartSesiones.data.labels,
-            datasets: chartSesiones.data.datasets
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-            scales: {
-                y: {
-                    beginAtZero: true
-                },
-                y1: {
-                    position: 'right',
-                    beginAtZero: true,
-                    max: 100,
-                    grid: {
-                        drawOnChartArea: false
-                    }
-                }
-            }
-        }
-    });
-}
-
 document
     .getElementById("cerrarModalSesiones")
     .addEventListener("click", cerrarModalSesiones);
-
-function cerrarModalSesiones() {
-    const modal = document.getElementById("modalSesiones");
-    modal.style.display = "none";
-
-    if (chartSesionesModal) {
-        chartSesionesModal.destroy();
-        chartSesionesModal = null;
-    }
-}
-
 
 const botonesSesionesModal = document.querySelectorAll(
     '.modal-buttons button[data-sesiones]'
@@ -398,114 +609,11 @@ async function getSesiones(usuario) {
 }
 
 
-// ⏱️ 2. Convertir ms → hh:mm:ss
-function msToTime(ms) {
-    let totalSeconds = Math.floor(ms / 1000);
-
-    let h = Math.floor(totalSeconds / 3600);
-    let m = Math.floor((totalSeconds % 3600) / 60);
-    let s = totalSeconds % 60;
-
-    return (
-        String(h).padStart(2, '0') + ":" +
-        String(m).padStart(2, '0') + ":" +
-        String(s).padStart(2, '0')
-    );
-}
-
 // 📊 3. Procesar datos
 function procesarDatos(data) {
-
     const fechas = Object.keys(data).sort();
-
     const tiempos = fechas.map(f => data[f].tiempo / 1000); // en segundos
-
-    console.log("Datos crudos de movimiento: fechas", fechas);
-    console.log("Datos crudos de movimiento: tiempos", tiempos);
     return { fechas, tiempos };
-}
-// Los datos obtenidos los dividimos en semanas para mostrar una por una
-function dividirEnSemanas(fechas, valores) {
-    const semanas = [];
-
-    for (let i = 0; i < fechas.length; i += 7) {
-        semanas.push({
-            fechas: fechas.slice(i, i + 7),
-            valores: valores.slice(i, i + 7)
-        });
-    }
-
-    return semanas;
-}
-
-function dividirSesionesEnSemanas(datosProcesados) {
-    const fechas = Object.keys(datosProcesados).sort();
-    const semanas = [];
-
-    for (let i = 0; i < fechas.length; i += 7) {
-        const bloque = fechas.slice(i, i + 7);
-
-        semanas.push({
-            fechas: bloque,
-            aceleraciones: bloque.map(f => datosProcesados[f].aceleraciones),
-            colisiones: bloque.map(f => datosProcesados[f].colisiones),
-            paradas: bloque.map(f => datosProcesados[f].paradas),
-            tiempo: bloque.map(f => datosProcesados[f].tiempo),
-            estabilidad: bloque.map(f => datosProcesados[f].estabilidad),
-            score: bloque.map(f => datosProcesados[f].score)
-        });
-    }
-
-    return semanas;
-}
-
-// 📈 4. Crear gráfica
-function crearGrafica(fechas, tiempos) {
-    return new Chart(document.getElementById("tiempoChart"), {
-        type: "bar",
-        data: {
-            labels: fechas,
-            datasets: [{
-                label: "Tiempo de uso",
-                data: tiempos
-            }]
-        },
-        options: {
-            responsive: false,
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function (context) {
-                            return "Tiempo: " + msToTime(context.raw * 1000);
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    ticks: {
-                        font: {
-                            size: 4
-                        }
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: "Tiempo (hh:mm:ss)"
-                    },
-                    ticks: {
-                        font: {
-                            size: 4
-                        },
-                        callback: function (value) {
-                            return msToTime(value * 1000);
-                        }
-                    }
-                }
-            }
-        }
-    });
 }
 
 // 🚀 5. Ejecutar
@@ -513,50 +621,6 @@ getMovimiento().then(data => {
     const { fechas, tiempos } = procesarDatos(data);
     chartTiempo = crearGrafica(fechas, tiempos);
 });
-
-function procesarSesiones(data) {
-    const resultado = {};
-
-    const fechas = Object.keys(data).sort();
-
-    fechas.forEach(fecha => {
-        const sesiones = data[fecha];
-
-        let totalAceleraciones = 0;
-        let totalColisiones = 0;
-        let totalParadas = 0;
-        let totalTiempo = 0;
-
-        let totalEstabilidad = 0;
-        let totalScore = 0;
-        let count = 0;
-
-        for (let id in sesiones) {
-            const s = sesiones[id];
-
-            totalAceleraciones += s.aceleraciones_bruscas || 0;
-            totalColisiones += s.colisiones || 0;
-            totalParadas += s.paradas_bruscas || 0;
-            totalTiempo += s.tiempo_movimiento || 0;
-
-            totalEstabilidad += s.estabilidad || 0;
-            totalScore += s.score || 0;
-
-            count++;
-        }
-
-        resultado[fecha] = {
-            aceleraciones: totalAceleraciones,
-            colisiones: totalColisiones,
-            paradas: totalParadas,
-            tiempo: totalTiempo / 1000, // a segundos
-            estabilidad: count ? totalEstabilidad / count : 0,
-            score: count ? totalScore / count : 0
-        };
-    });
-
-    return resultado;
-}
 
 function crearGraficaSesiones(datos) {
     const fechas = Object.keys(datos);
@@ -605,19 +669,19 @@ function crearGraficaSesiones(datos) {
             plugins: {
                 legend: {
                     labels: {
-                        font: { size: 9 }
+                        font: { size: 10 }
                     }
                 },
                 tooltip: {
-                    bodyFont: { size: 6 },
-                    titleFont: { size: 6 }
+                    bodyFont: { size: 10 },
+                    titleFont: { size: 10 }
                 }
             },
             scales: {
                 x: {
                     ticks: {
                         font: {
-                            size: 8
+                            size: 10
                         }
                     }
                 },
@@ -627,7 +691,7 @@ function crearGraficaSesiones(datos) {
                         display: true,
                         text: "Eventos / Tiempo",
                         font: {
-                            size: 6
+                            size: 10
                         }
                     }
                 },
@@ -638,14 +702,14 @@ function crearGraficaSesiones(datos) {
                     max: 100,
                     ticks: {
                         font: {
-                            size: 6
+                            size: 10
                         }
                     },
                     title: {
                         display: true,
                         text: "Score / Estabilidad",
                         font: {
-                            size: 6
+                            size: 10
                         }
                     },
                     grid: {
@@ -705,39 +769,6 @@ const db = getDatabase(app);
 // ✅ Elemento select
 const usuarioSelect = document.getElementById("usuarioSelect");
 
-// ✅ Cargar usuarios desde raíz del Realtime Database
-function cargarUsuarios() {
-    const rootRef = ref(db, "/");
-
-    get(rootRef)
-        .then((snapshot) => {
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-
-                // ✅ Vaciar select
-                usuarioSelect.innerHTML = "";
-                // Insertamos un elemento vacío para obligar a seleccionar un usuario
-                const optionVac = document.createElement("option");
-                optionVac.value = "";
-                optionVac.textContent = "Selecciona un paciente";
-                usuarioSelect.appendChild(optionVac);
-                // ✅ Recorrer claves (nombres de usuarios)
-                Object.keys(data).forEach((usuario) => {
-                    const option = document.createElement("option");
-                    option.value = usuario;
-                    option.textContent = usuario;
-                    usuarioSelect.appendChild(option);
-                });
-            } else {
-                usuarioSelect.innerHTML = "<option>No hay usuarios registrados</option>";
-            }
-        })
-        .catch((error) => {
-            console.error("Error obteniendo usuarios:", error);
-            usuarioSelect.innerHTML = "<option>Error al cargar</option>";
-        });
-}
-
 // ✅ Ejecutar al cargar la página
 cargarUsuarios();
 
@@ -753,7 +784,6 @@ botonesTiempo.forEach((btn, index) => {
         cargarSemanaTiempo(index);
     });
 });
-let semanasTiempo = [];
 
 // La llamamos cada vez que pulsamos un botón para cargar
 // los datos de la semana correspondiente
@@ -800,8 +830,12 @@ document
             crearSesionesChartModal(Number(button.dataset.modal));
         });
     });
+    
+/*************************************************
+ * 9. CAMBIO DE USUARIO
+ *************************************************/
 
-selectUsuario.addEventListener("change", async () => {
+    selectUsuario.addEventListener("change", async () => {
 
     const usuario = selectUsuario.value;
 
@@ -902,6 +936,10 @@ selectUsuario.addEventListener("change", async () => {
     semanasSesiones = dividirSesionesEnSemanas(datosProcesados);
 
     let semanaActualSesiones = 0;
+
+/*************************************************
+ * 10. EVENTOS DE BOTONES (SEMANAS)
+ *************************************************/
 
     document
         .querySelectorAll("[data-session-week]")
