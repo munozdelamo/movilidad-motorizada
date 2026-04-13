@@ -13,6 +13,9 @@ async function getSesiones() {
 }*/
 // Variable global para la gráfica de tiempo, así podemos destruirla y crear una nueva al cambiar de usuario
 let chartTiempoModal = null;
+let semanasSesiones = [];
+let chartSesiones = null;
+let chartTiempo = null;
 
 // Detectamos el click en la gráfica de tiempo para abrir el modal
 document
@@ -29,7 +32,7 @@ function abrirModalTiempo() {
         .getElementById("tiempoChartModal")
         .getContext("2d");
 
-// Mostrar solo las semanas existentes
+    // Mostrar solo las semanas existentes
     botonesTiempoModal.forEach((btn, i) => {
         btn.style.display = semanasTiempo[i] ? "inline-block" : "none";
         btn.classList.remove("active");
@@ -71,12 +74,57 @@ function abrirModalTiempo() {
     });
 }
 
+if (semanasSesiones.length > 0) {
+    if (chartSesiones) chartSesiones.destroy();
+
+    chartSesiones = new Chart(
+        document.getElementById("sesionesChart"),
+        {
+            type: "bar",
+            data: {
+                labels: semanasSesiones[0].fechas,
+                datasets: [
+                    { label: "Aceleraciones", data: semanasSesiones[0].aceleraciones },
+                    { label: "Colisiones", data: semanasSesiones[0].colisiones },
+                    { label: "Paradas", data: semanasSesiones[0].paradas },
+                    { label: "Tiempo (s)", data: semanasSesiones[0].tiempo },
+                    {
+                        label: "Estabilidad (media)",
+                        type: "line",
+                        data: semanasSesiones[0].estabilidad,
+                        yAxisID: "y1"
+                    },
+                    {
+                        label: "Score (medio)",
+                        type: "line",
+                        data: semanasSesiones[0].score,
+                        yAxisID: "y1"
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: "index", intersect: false },
+                scales: {
+                    y: { beginAtZero: true },
+                    y1: {
+                        position: "right",
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        }
+    );
+}
+
 document
     .getElementById("cerrarModalTiempo")
     .addEventListener("click", cerrarModalTiempo);
 
 // Función para cerrar el modal y destruir la gráfica ampliada
-    function cerrarModalTiempo() {
+function cerrarModalTiempo() {
     const modal = document.getElementById("modalTiempo");
     modal.style.display = "none";
 
@@ -330,8 +378,7 @@ async function getMovimiento(usuario) {
     return data || {};
 }
 
-let chartSesiones = null;
-let chartTiempo = null;
+
 
 /**
  * 🔥 Obtener sesiones para un usuario
@@ -368,7 +415,7 @@ function msToTime(ms) {
 
 // 📊 3. Procesar datos
 function procesarDatos(data) {
-    
+
     const fechas = Object.keys(data).sort();
 
     const tiempos = fechas.map(f => data[f].tiempo / 1000); // en segundos
@@ -385,6 +432,27 @@ function dividirEnSemanas(fechas, valores) {
         semanas.push({
             fechas: fechas.slice(i, i + 7),
             valores: valores.slice(i, i + 7)
+        });
+    }
+
+    return semanas;
+}
+
+function dividirSesionesEnSemanas(datosProcesados) {
+    const fechas = Object.keys(datosProcesados).sort();
+    const semanas = [];
+
+    for (let i = 0; i < fechas.length; i += 7) {
+        const bloque = fechas.slice(i, i + 7);
+
+        semanas.push({
+            fechas: bloque,
+            aceleraciones: bloque.map(f => datosProcesados[f].aceleraciones),
+            colisiones: bloque.map(f => datosProcesados[f].colisiones),
+            paradas: bloque.map(f => datosProcesados[f].paradas),
+            tiempo: bloque.map(f => datosProcesados[f].tiempo),
+            estabilidad: bloque.map(f => datosProcesados[f].estabilidad),
+            score: bloque.map(f => datosProcesados[f].score)
         });
     }
 
@@ -417,7 +485,7 @@ function crearGrafica(fechas, tiempos) {
                 x: {
                     ticks: {
                         font: {
-                            size: 8
+                            size: 4
                         }
                     }
                 },
@@ -428,7 +496,7 @@ function crearGrafica(fechas, tiempos) {
                     },
                     ticks: {
                         font: {
-                            size: 8
+                            size: 4
                         },
                         callback: function (value) {
                             return msToTime(value * 1000);
@@ -536,13 +604,13 @@ function crearGraficaSesiones(datos) {
             },
             plugins: {
                 legend: {
-                labels: {
-                    font: { size: 9 }
-                }
+                    labels: {
+                        font: { size: 9 }
+                    }
                 },
                 tooltip: {
-                bodyFont: { size: 6 },
-                titleFont: { size: 6 }
+                    bodyFont: { size: 6 },
+                    titleFont: { size: 6 }
                 }
             },
             scales: {
@@ -563,14 +631,14 @@ function crearGraficaSesiones(datos) {
                         }
                     }
                 },
-                
+
                 y1: {
                     position: 'right',
                     beginAtZero: true,
                     max: 100,
                     ticks: {
                         font: {
-                        size: 6
+                            size: 6
                         }
                     },
                     title: {
@@ -589,11 +657,11 @@ function crearGraficaSesiones(datos) {
     });
 }
 
-getSesiones().then(data => {
+/*getSesiones().then(data => {
     const datosProcesados = procesarSesiones(data);
     chartSesiones = crearGraficaSesiones(datosProcesados);
 });
-
+*/
 
 function resetCanvas(id) {
     console.log("Id canvas: " + id);
@@ -705,10 +773,38 @@ function cargarSemanaTiempo(index, botones) {
     );
 }
 
+
+let sesionesChartModal;
+
+function crearSesionesChartModal(semana = 0) {
+    const ctx = document.getElementById("sesionesChartModal");
+
+    if (sesionesChartModal) sesionesChartModal.destroy();
+
+    sesionesChartModal = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: semanasSesiones[semana].fechas,
+            datasets: [{
+                label: "Sesiones por día",
+                data: semanasSesiones[semana].valores,
+                backgroundColor: "#ff9800"
+            }]
+        }
+    });
+}
+document
+    .querySelectorAll('#modalSesiones button[data-modal]')
+    .forEach(button => {
+        button.addEventListener('click', () => {
+            crearSesionesChartModal(Number(button.dataset.modal));
+        });
+    });
+
 selectUsuario.addEventListener("change", async () => {
 
     const usuario = selectUsuario.value;
-    
+
     semanasTiempo = []; // 🔥 reset total
 
     if (!usuario) {
@@ -741,8 +837,91 @@ selectUsuario.addEventListener("change", async () => {
 
     }
     //chartTiempo = crearGrafica(fechas, tiempos);
+    // Datos de sesiones por semanas
+    // 🔁 Obtener sesiones del usuario
 
+
+    // ✅ Procesar sesiones
     const datosProcesados = procesarSesiones(sesiones);
-    chartSesiones = crearGraficaSesiones(datosProcesados);
+
+    // ✅ Crear semanas (GLOBAL)
+    semanasSesiones = dividirSesionesEnSemanas(datosProcesados);
+
+    // ✅ Si no hay datos, salir
+    if (semanasSesiones.length === 0) {
+        if (chartSesiones) chartSesiones.destroy();
+        return;
+    }
+
+    // ✅ Destruir gráfica anterior
+    if (chartSesiones) chartSesiones.destroy();
+
+    // ✅ Crear gráfica (SEMANA 0)
+    chartSesiones = new Chart(
+        document.getElementById("sesionesChart"),
+        {
+            type: "bar",
+            data: {
+                labels: semanasSesiones[0].fechas,
+                datasets: [
+                    { label: "Aceleraciones", data: semanasSesiones[0].aceleraciones },
+                    { label: "Colisiones", data: semanasSesiones[0].colisiones },
+                    { label: "Paradas", data: semanasSesiones[0].paradas },
+                    { label: "Tiempo (s)", data: semanasSesiones[0].tiempo },
+                    {
+                        label: "Estabilidad (media)",
+                        type: "line",
+                        data: semanasSesiones[0].estabilidad,
+                        yAxisID: "y1"
+                    },
+                    {
+                        label: "Score (medio)",
+                        type: "line",
+                        data: semanasSesiones[0].score,
+                        yAxisID: "y1"
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: "index", intersect: false },
+                scales: {
+                    y: { beginAtZero: true },
+                    y1: {
+                        position: "right",
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        }
+    );
+
+
+    semanasSesiones = dividirSesionesEnSemanas(datosProcesados);
+
+    let semanaActualSesiones = 0;
+
+    document
+        .querySelectorAll("[data-session-week]")
+        .forEach(btn => {
+            btn.addEventListener("click", () => {
+                const index = Number(btn.dataset.sessionWeek);
+                if (!semanasSesiones[index] || !chartSesiones) return;
+
+                chartSesiones.data.labels = semanasSesiones[index].fechas;
+                chartSesiones.data.datasets[0].data = semanasSesiones[index].aceleraciones;
+                chartSesiones.data.datasets[1].data = semanasSesiones[index].colisiones;
+                chartSesiones.data.datasets[2].data = semanasSesiones[index].paradas;
+                chartSesiones.data.datasets[3].data = semanasSesiones[index].tiempo;
+                chartSesiones.data.datasets[4].data = semanasSesiones[index].estabilidad;
+                chartSesiones.data.datasets[5].data = semanasSesiones[index].score;
+
+                chartSesiones.update();
+            });
+        });
+
+    //chartSesiones = crearGraficaSesiones(datosProcesados);
 
 });
