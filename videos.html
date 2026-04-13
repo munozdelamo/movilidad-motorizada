@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Proyecto de Movilidad Motorizada – Vídeos</title>
+
+  <!-- Estilos del proyecto -->
+  <link rel="stylesheet" href="css/estilos.css" />
+
+  <!-- Firebase + lógica de vídeos -->
+  <script type="module">
+    import { initializeApp } from
+      "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import {
+      getStorage,
+      ref,
+      listAll,
+      getDownloadURL
+    } from
+      "https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js";
+
+    const firebaseConfig = {
+      databaseURL:
+        "https://movilidad-motorizada-default-rtdb.europe-west1.firebasedatabase.app/"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+
+    async function cargarVideos() {
+      const contenedor = document.getElementById("videos-container");
+
+      // Carpeta raíz de vídeos en Firebase Storage
+      const rootRef = ref(storage, "videos");
+
+      try {
+        const usuarios = await listAll(rootRef);
+
+        if (usuarios.prefixes.length === 0) {
+          contenedor.textContent = "No hay vídeos disponibles.";
+          return;
+        }
+
+        for (const carpetaUsuario of usuarios.prefixes) {
+          const tituloUsuario = document.createElement("h3");
+          tituloUsuario.textContent = `📁 Usuario: ${carpetaUsuario.name}`;
+          contenedor.appendChild(tituloUsuario);
+
+          const listaVideos = await listAll(carpetaUsuario);
+
+          const grid = document.createElement("div");
+          grid.className = "videos-grid";
+
+          for (const item of listaVideos.items) {
+            const url = await getDownloadURL(item);
+
+            const videoBox = document.createElement("div");
+            videoBox.className = "video-box";
+
+            const video = document.createElement("video");
+            video.src = url;
+            video.controls = true;
+
+            const nombre = document.createElement("p");
+            nombre.textContent = item.name;
+
+            videoBox.appendChild(video);
+            videoBox.appendChild(nombre);
+            grid.appendChild(videoBox);
+          }
+
+          contenedor.appendChild(grid);
+        }
+      } catch (e) {
+        console.error(e);
+        contenedor.textContent =
+          "Error cargando los vídeos desde Firebase Storage";
+      }
+    }
+
+    cargarVideos();
+  </script>
+
+  <style>
+    /* Reglas específicas solo para vídeos */
+    .videos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .video-box {
+      background: #f7f7f7;
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .video-box video {
+      width: 100%;
+      border-radius: 4px;
+    }
+
+    .video-box p {
+      font-size: 12px;
+      margin-top: 6px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ✅ ENCABEZADO -->
+<header>
+  <div class="top-logos">
+    <img src="bienestar.jpg" alt="Consejería de Bienestar Social" />
+    <img src="maestre.jpg" alt="Logo IES Maestre de Calatrava" />
+    <img src="educacion.jpg" alt="Consejería de Educación, Cultura y Deportes" />
+  </div>
+  <div class="title-container">
+    <h1>Proyecto de Movilidad Motorizada</h1>
+    <h2>Registro audiovisual de sesiones</h2>
+  </div>
+</header>
+
+<!-- ✅ MENÚ -->
+<nav class="menu">
+  <ul>
+    <li><a href="horas.html">Inicio</a></li>
+    <li><a href="#">Estadísticas</a></li>
+    <li><a href="#">Progreso</a></li>
+    <li><a href="#">Configuración</a></li>
+    <li><a href="#">Seleccionar Usuario</a></li>
+    <li><a href="videos.html" class="active">Vídeos</a></li>
+  </ul>
+</nav>
+
+<!-- ✅ CONTENIDO PRINCIPAL -->
+<main>
+  <section class="charts-container">
+    <article>
+      <h2>🎥 Vídeos de las sesiones</h2>
+      <p>
+        A continuación se muestran los vídeos subidos por los usuarios a
+        Firebase Storage, organizados por usuario.
+      </p>
+      <div id="videos-container"></div>
+    </article>
+  </section>
+</main>
+
+<!-- ✅ PIE -->
+<footer>
+  <p>© 2026 Proyecto Movilidad Motorizada</p>
+</footer>
+
+</body>
+</html>
