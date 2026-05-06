@@ -97,7 +97,7 @@ function procesarSesiones(data) {
  *************************************************/
 
 // Tiempo
-function dividirEnSemanas(fechas, valores) {
+export function dividirEnSemanas(fechas, valores) {
   const semanas = [];
   for (let i = 0; i < fechas.length; i += 7) {
     semanas.push({
@@ -963,3 +963,42 @@ document
     //chartSesiones = crearGraficaSesiones(datosProcesados);
 
 });
+
+/*************************************************
+ * 11. GENERACIÓN DE INFORMES
+ *************************************************/
+  export function calcularResumenSemanal(usuario) {
+  const resumen = [];
+
+  semanasTiempo.forEach((semanaTiempo, index) => {
+    const tiempos = semanaTiempo.valores; // segundos
+    const fechas = semanaTiempo.fechas;
+
+    const tiempoTotal = tiempos.reduce((a, b) => a + b, 0);
+    const mediaDiaria = tiempoTotal / tiempos.length;
+
+    const maxUso = Math.max(...tiempos);
+    const minUso = Math.min(...tiempos);
+
+    const diaMax = fechas[tiempos.indexOf(maxUso)];
+    const diaMin = fechas[tiempos.indexOf(minUso)];
+
+    const sesionesSemana = semanasSesiones[index]
+      ? semanasSesiones[index].aceleraciones.length
+      : 0;
+
+    resumen.push({
+      semana: index + 1,
+      tiempoTotal,
+      mediaDiaria,
+      diaMax,
+      diaMin,
+      sesiones: sesionesSemana
+    });
+  });
+
+  return {
+    usuario,
+    resumen
+  };
+}

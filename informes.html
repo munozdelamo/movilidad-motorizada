@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Proyecto de Movilidad Motorizada – Informes</title>
+
+  <!-- Estilos del proyecto -->
+  <link rel="stylesheet" href="css/estilos.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<!-- ✅ ENCABEZADO -->
+<header>
+  <div class="top-logos">
+    <img src="bienestar.jpg" alt="Consejería de Bienestar Social">
+    <img src="maestre.jpg" alt="IES Maestre de Calatrava">
+    <img src="educacion.jpg" alt="Consejería de Educación">
+  </div>
+  <div class="title-container">
+    <h1>Proyecto de Movilidad Motorizada</h1>
+    <h2>Generación de informes en PDF</h2>
+  </div>
+</header>
+
+<!-- ✅ MENÚ -->
+<nav class="menu">
+  <ul>
+    <li><a href="horas.html">Inicio</a></li>
+    <li><a href="#">Estadísticas</a></li>
+    <li><a href="#">Progreso</a></li>
+    <li><a href="#">Configuración</a></li>
+    <li><a href="videos.html">Vídeos</a></li>
+    <li><a href="informes.html" class="active">Informes</a></li>
+  </ul>
+</nav>
+
+<!-- ✅ CONTENIDO PRINCIPAL -->
+<main>
+  <section class="charts-container">
+
+    <article>
+      <h2>📄 Solicitud de informes</h2>
+
+      <p>
+        Desde esta página se pueden generar informes personalizados en formato
+        PDF, basados en los datos registrados de tiempo de uso y sesiones.
+      </p>
+
+<div class="form-informes">
+
+  <div class="form-group">
+    <label for="usuarioInforme">👤 Usuario</label>
+    <select id="usuarioInforme">
+      <option value="">Selecciona un usuario</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="tipoInforme">📄 Tipo de informe</label>
+    <select id="tipoInforme">
+      <option value="resumen">Resumen semanal de uso</option>
+      <option value="sesiones">Informe de sesiones</option>
+      <option value="evolucion">Evolución temporal</option>
+      <option value="completo">Informe completo del usuario</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="semanaInforme">📅 Semana</label>
+    <select id="semanaInforme">
+      <option value="0">Semana 1</option>
+      <option value="1">Semana 2</option>
+      <option value="2">Semana 3</option>
+      <option value="3">Semana 4</option>
+    </select>
+  </div>
+
+</div>
+
+      <!-- Botón -->
+      <button id="generarInforme" class="btn-primary">
+        📥 Generar informe en PDF
+      </button>
+
+      <p class="nota">
+        El informe se descargará automáticamente una vez generado.
+      </p>
+
+    </article>
+
+  </section>
+  <div id="contenidoInforme" style="display:none;"></div>
+</main>
+
+<!-- ✅ PIE -->
+<footer>
+  <p>© 2026 Proyecto Movilidad Motorizada</p>
+</footer>
+<script type="module" src="js/informes.js"></script>
+<script src="js/html2pdf.bundle.min.js"></script>
+
+</body>
+</html>
