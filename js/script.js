@@ -1,3 +1,43 @@
+let pacienteGuardado = localStorage.getItem("pacienteSeleccionado");
+console.log("Paciente guardado al inicio:", pacienteGuardado); // Depuración
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM CARGADO - ocultando modales");
+  document.querySelectorAll(".modal").forEach(m => {
+    console.log("Ocultando:", m.id);
+    m.classList.add("hidden");
+    m.style.display = "none"; // 🔥 forzado extra
+  });
+  comprobarSesion();
+  // Si el usuario ya ha iniciado sesión, mostrar su nombre y el botón de cerrar sesión
+  const btn = document.getElementById("cerrarSesionBtn");
+  if (btn) {
+      btn.addEventListener("click", cerrarSesion);
+  }
+  
+  pacienteGuardado = localStorage.getItem("pacienteSeleccionado");
+
+    if (pacienteGuardado) {
+        const select = document.getElementById("usuarioSelect");
+        console.log("Paciente guardado en localStorage:", pacienteGuardado); // Depuración
+        // Esperar un poco a que se carguen los datos del select
+        setTimeout(() => {
+            select.value = pacienteGuardado;
+            select.dispatchEvent(new Event("change"));
+        }, 500);
+    }
+
+});
+
+
+function comprobarSesion() {
+    const usuario = localStorage.getItem("usuarioActivo");
+
+    if (!usuario) {
+        window.location.href = "login.html";
+    }
+}
+
+
 /*************************************************
  * 1. CONSTANTES Y CONFIGURACIÓN
  *************************************************/
@@ -92,6 +132,15 @@ function procesarSesiones(data) {
   return resultado;
 }
 
+function establecerUsuario() {
+    const usuarioActivo = localStorage.getItem("usuarioActivo");
+
+    if (usuarioActivo) {
+        
+        // Insertar el nombre en el HTML
+        document.getElementById("nombreUsuario").textContent = usuarioActivo;
+    }
+}
 /*************************************************
  * 5. AGRUPACIÓN DE DATOS POR SEMANAS
  *************************************************/
@@ -193,8 +242,10 @@ function crearGrafica(fechas, tiempos) {
 // Modal tiempo
 // Función para abrir el modal con la gráfica ampliada
 function abrirModalTiempo() {
+    
     const modal = document.getElementById("modalTiempo");
-    modal.style.display = "block";
+    modal.classList.remove("hidden");
+    modal.style.display = "flex";
 
     const ctx = document
         .getElementById("tiempoChartModal")
@@ -301,7 +352,8 @@ function cerrarModalTiempo() {
 // Modal sesiones
 function abrirModalSesiones() {
     const modal = document.getElementById("modalSesiones");
-    modal.style.display = "block";
+    modal.classList.remove("hidden");
+    modal.style.display = "flex";
 
     const ctx = document
         .getElementById("sesionesChartModal")
@@ -366,7 +418,7 @@ function cerrarModalSesiones() {
 
 // ✅ Cargar usuarios desde raíz del Realtime Database
 function cargarUsuarios() {
-    const rootRef = ref(db, "/");
+    const rootRef = ref(db, "/pacientes");
 
     get(rootRef)
         .then((snapshot) => {
@@ -383,10 +435,20 @@ function cargarUsuarios() {
                 // ✅ Recorrer claves (nombres de usuarios)
                 Object.keys(data).forEach((usuario) => {
                     const option = document.createElement("option");
-                    option.value = usuario;
-                    option.textContent = usuario;
+                    option.value = data[usuario].nombre;
+                    option.textContent = data[usuario].nombre;
                     usuarioSelect.appendChild(option);
                 });
+
+                const pacienteGuardado = localStorage.getItem("pacienteSeleccionado");
+
+                if (pacienteGuardado) {
+                    usuarioSelect.value = pacienteGuardado;
+
+                    // ✅ aquí ya está TODO listo
+                    usuarioSelect.dispatchEvent(new Event("change"));
+                }
+
             } else {
                 usuarioSelect.innerHTML = "<option>No hay usuarios registrados</option>";
             }
@@ -575,13 +637,17 @@ function cargarSemanaSesionesModal(index) {
  * 🔥 Obtener datos de movimiento para un usuario
  * Si no hay usuario, devuelve un objeto vacío
  */
-async function getMovimiento(usuario) {
-    if (!usuario) {
-        console.log("⛔ No hay usuario seleccionado → movimiento vacío");
+
+async function getMovimiento(paciente) {
+    /*console.log("Paciente seleccionado para obtener movimiento:", paciente); // Depuración
+    if (!paciente) {
+        console.log("⛔ No hay paciente seleccionado → movimiento vacío");
         return {};
     }
-
-    const url = `${BASE_URL}/${usuario}/movimiento.json`;
+*/
+    const pacienteGuardado = localStorage.getItem("pacienteSeleccionado");
+    //console.log("Paciente guardado en localStorage dentro de getMovimiento:", pacienteGuardado); // Depuración
+    const url = `${BASE_URL}/pacientes/${pacienteGuardado}/movimiento.json`;
 
     const res = await fetch(url);
     const data = await res.json();
@@ -596,12 +662,12 @@ async function getMovimiento(usuario) {
  * Si no hay usuario, devuelve un objeto vacío
  */
 async function getSesiones(usuario) {
-    if (!usuario) {
+    /*if (!usuario) {
         console.log("⛔ No hay usuario seleccionado → sesiones vacías");
         return {};
-    }
-
-    const url = `${BASE_URL}/${usuario}/sesiones.json`;
+    }*/
+    const pacienteGuardado = localStorage.getItem("pacienteSeleccionado");
+    const url = `${BASE_URL}/pacientes/${pacienteGuardado}/sesiones.json`;
 
     const res = await fetch(url);
     const data = await res.json();
@@ -623,6 +689,7 @@ getMovimiento().then(data => {
 });
 
 function crearGraficaSesiones(datos) {
+    console.log("Datos procesados para sesiones:", datos); // Depuración
     const fechas = Object.keys(datos);
 
     return new Chart(document.getElementById("sesionesChart"), {
@@ -771,9 +838,9 @@ const usuarioSelect = document.getElementById("usuarioSelect");
 
 // ✅ Ejecutar al cargar la página
 cargarUsuarios();
+establecerUsuario();
 
 const selectUsuario = document.getElementById("usuarioSelect");
-
 
 const botonesTiempo = document.querySelectorAll(
     '.week-buttons[data-chart="tiempo"] button'
@@ -835,20 +902,21 @@ document
  * 9. CAMBIO DE USUARIO
  *************************************************/
 
-    selectUsuario.addEventListener("change", async () => {
+selectUsuario.addEventListener("change", async () => {
 
-    const usuario = selectUsuario.value;
+    //const usuario = selectUsuario.value;
+    console.log("Usuario seleccionado XX:", pacienteGuardado);
 
     semanasTiempo = []; // 🔥 reset total
 
-    if (!usuario) {
+    /*if (!usuario) {
         if (chartTiempo) chartTiempo.destroy();
         if (chartSesiones) chartSesiones.destroy();
         return;
     }
-
-    const movimiento = await getMovimiento(usuario);
-    const sesiones = await getSesiones(usuario);
+*/
+    const movimiento = await getMovimiento(pacienteGuardado);
+    const sesiones = await getSesiones(pacienteGuardado);
 
     // ✅ Destruir gráficas anteriores
     if (chartTiempo) chartTiempo.destroy();
@@ -1001,4 +1069,13 @@ document
     usuario,
     resumen
   };
+}
+
+
+function cerrarSesion() {
+    // 🧹 Borrar TODO el almacenamiento local
+    localStorage.clear();
+
+    // 🔁 Redirigir al login
+    window.location.href = "login.html";
 }

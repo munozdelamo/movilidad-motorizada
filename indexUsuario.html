@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Pacientes</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Movilidad Motorizada</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="css/estilos.css">
+
+</head>
+
+<body>
+  <header>
+    <div class="top-logos">
+      <img src="bienestar.jpg" alt="Consejería de Bienestar Social">
+      <img src="maestre.jpg" alt="Logo IES Maestre de Calatrava">
+      <img src="educacion.jpg" alt="Consejería de Educación, Cultura y Deportes">
+    </div>
+
+    <div class="title-container">
+      <h1>Proyecto de Movilidad Motorizada</h1>
+      <h2>Seguimiento del uso y evolución del usuario</h2>
+    </div>
+  </header>
+
+  <nav class="menu">
+    <ul>
+            
+      <li>
+      
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+          style="vertical-align: middle; margin-right: 6px;"
+        >
+          <path d="M12 12c2.7 0 4.5-2 4.5-4.5S14.7 3 12 3 
+                   7.5 5 7.5 7.5 9.3 12 12 12zm0 2
+                   c-3 0-9 1.5-9 4.5V21h18v-2.5
+                   c0-3-6-4.5-9-4.5z"/>
+        </svg>
+        <span id="nombreUsuario"></span>
+        <button id="cerrarSesionBtn" class="btn-logout">
+          ⛔ Logout
+        </button>
+      </a>
+    </li>
+
+    </ul>
+  </nav>
+
+<main class="contenedor-pacientes">
+  <div class="tarjeta">
+    <h2>Listado de pacientes</h2>
+    <ul id="listaPacientes" class="grid-pacientes"></ul>
+  </div>
+</main>
+
+<script src="js/scriptUsuario.js" type="module"></script>
+
+</body>
+</html>

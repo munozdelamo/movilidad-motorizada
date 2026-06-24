@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Movilidad Motorizada</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="css/estilos.css">
+
+</head>
+
+<body>
+  <header>
+    <div class="top-logos">
+      <img src="bienestar.jpg" alt="Consejería de Bienestar Social">
+      <img src="maestre.jpg" alt="Logo IES Maestre de Calatrava">
+      <img src="educacion.jpg" alt="Consejería de Educación, Cultura y Deportes">
+    </div>
+
+    <div class="title-container">
+      <h1>Proyecto de Movilidad Motorizada</h1>
+      <h2>Seguimiento del uso y evolución del usuario</h2>
+    </div>
+  </header>
+
+  <nav class="menu">
+    <ul>
+      <li><a href="indexUsuario.html">Volver</a></li>
+      <li id="ocultar"><a href="#">Seleccionar paciente</a></li>
+      <select id="usuarioSelect">
+        <option value="">Cargando paciente...</option>
+      </select>
+      
+<li>
+      
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+          style="vertical-align: middle; margin-right: 6px;"
+        >
+          <path d="M12 12c2.7 0 4.5-2 4.5-4.5S14.7 3 12 3 
+                   7.5 5 7.5 7.5 9.3 12 12 12zm0 2
+                   c-3 0-9 1.5-9 4.5V21h18v-2.5
+                   c0-3-6-4.5-9-4.5z"/>
+        </svg>
+        <span id="nombreUsuario"></span>
+      
+        
+        <button id="cerrarSesionBtn" class="btn-logout">
+          ⛔ Logout
+        </button>
+    </li>
+
+    </ul>
+  </nav>
+  <main>
+
+    <section class="charts-container">
+
+      <article>
+        <h2>📊 Tiempo de uso por día</h2>
+        <canvas id="tiempoChart"></canvas>
+        <div class="week-buttons" data-chart="tiempo">
+
+          <button data-week="0">1</button>
+          <button data-week="1">2</button>
+          <button data-week="2">3</button>
+          <button data-week="3">4</button>
+          <button data-week="4">5</button>
+          <button data-week="5">6</button>
+          <button data-week="6">7</button>
+          <button data-week="7">8</button>
+          <button data-week="8">9</button>
+          <button data-week="9">10</button>
+          <button data-week="10">11</button>
+          <button data-week="11">12</button>
+
+        </div>
+      </article>
+
+      <article>
+        <h2>📈 Análisis de sesiones</h2>
+        <canvas id="sesionesChart"></canvas>
+        <div class="week-buttons" data-chart="sesiones">
+          <button data-session-week="0">1</button>
+          <button data-session-week="1">2</button>
+          <button data-session-week="2">3</button>
+          <button data-session-week="3">4</button>
+          <button data-session-week="4">5</button>
+          <button data-session-week="5">6</button>
+          <button data-session-week="6">7</button>
+          <button data-session-week="7">8</button>
+          <button data-session-week="8">9</button>
+          <button data-session-week="9">10</button>
+          <button data-session-week="10">11</button>
+          <button data-session-week="11">12</button>
+        </div>
+      </article>
+
+    </section>
+
+  </main>
+
+  <footer>
+    <p>© 2026 Proyecto Movilidad Motorizada</p>
+  </footer>
+  <script src="js/script.js" type="module"></script>
+  
+<div id="modalTiempo" class="modal hidden">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <canvas id="tiempoChartModal"></canvas>
+        <div class="week-buttons" data-chart="tiempo">
+
+          <button data-modal="0">1</button>
+          <button data-modal="1">2</button>
+          <button data-modal="2">3</button>
+          <button data-modal="3">4</button>
+          <button data-modal="4">5</button>
+          <button data-modal="5">6</button>
+          <button data-modal="6">7</button>
+          <button data-modal="7">8</button>
+          <button data-modal="8">9</button>
+          <button data-modal="9">10</button>
+          <button data-modal="10">11</button>
+          <button data-modal="11">12</button>
+
+        </div>
+        <div>
+          <button data-cerrar="0" id="cerrarModalTiempo" class="week-buttons">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalSesiones" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <canvas id="sesionesChartModal"></canvas>
+        <div class="week-buttons" data-chart="sesiones">
+
+          <button data-modal="0">1</button>
+          <button data-modal="1">2</button>
+          <button data-modal="2">3</button>
+          <button data-modal="3">4</button>
+          <button data-modal="4">5</button>
+          <button data-modal="5">6</button>
+          <button data-modal="6">7</button>
+          <button data-modal="7">8</button>
+          <button data-modal="8">9</button>
+          <button data-modal="9">10</button>
+          <button data-modal="10">11</button>
+          <button data-modal="11">12</button>
+
+        </div>
+        <div>
+          <button data-cerrar="0" id="cerrarModalSesiones" class="week-buttons">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>

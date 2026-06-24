@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Proyecto de Movilidad Motorizada – Informes</title>
+
+  <!-- Estilos del proyecto -->
+  <link rel="stylesheet" href="css/estilos.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+  <!-- ✅ ENCABEZADO -->
+  <header>
+    <div class="top-logos">
+      <img src="bienestar.jpg" alt="Consejería de Bienestar Social">
+      <img src="maestre.jpg" alt="IES Maestre de Calatrava">
+      <img src="educacion.jpg" alt="Consejería de Educación">
+    </div>
+    <div class="title-container">
+      <h1>Proyecto de Movilidad Motorizada</h1>
+      <h2>Alta y consulta de usuarios</h2>
+    </div>
+  </header>
+
+  <!-- ✅ MENÚ -->
+  <nav class="menu">
+    <ul>
+<li>
+      
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+          style="vertical-align: middle; margin-right: 6px;"
+        >
+          <path d="M12 12c2.7 0 4.5-2 4.5-4.5S14.7 3 12 3 
+                   7.5 5 7.5 7.5 9.3 12 12 12zm0 2
+                   c-3 0-9 1.5-9 4.5V21h18v-2.5
+                   c0-3-6-4.5-9-4.5z"/>
+        </svg>
+        <span id="nombreUsuario"></span>
+        <button id="cerrarSesionBtn" class="btn-logout">
+          ⛔ Logout
+        </button>
+      
+    </li>
+    </ul>
+  </nav>
+
+  <!-- ✅ CONTENIDO PRINCIPAL -->
+  <main>
+    <div style="margin-bottom:10px">
+      <h2 class="titulo-blanco">👤 Gestión de pacientes</h2>
+    </div>
+
+<section class="charts-container">
+
+  <!-- 🧾 FORMULARIO ALTA / MODIFICACIÓN -->
+  <article>
+    <form id="pacienteForm">
+      <h3 id="formTitle">Alta de paciente</h3>
+
+      <input type="hidden" id="pacienteId">
+
+      <div class="form-group">
+        <label for="nombrePaciente">Nombre</label>
+        <input type="text" id="nombrePaciente" required>
+      </div>
+
+      <div class="form-group">
+        <label for="SSID">SSID</label>
+        <input type="text" id="SSID" required>
+      </div>
+
+      <div class="form-group">
+        <label for="clave">Clave Wifi</label>
+        <input type="text" id="clave" required>
+      </div>
+
+      <div class="form-group">
+        <label for="sedeSelect">Sede de seguimiento</label>
+        <select id="sedeSelect" required>
+          <option value="">Cargando sedes...</option>
+        </select>
+      </div>
+
+      <button class="btn-primary">💾 Guardar paciente</button>
+    </form>
+  </article>
+
+  <!-- 📋 LISTADO -->
+  <article>
+    <h3>Pacientes registrados</h3>
+    <ul id="listaPacientes" class="grid-sedes"></ul>
+  </article>
+
+</section>
+
+<!-- <script type="module" src="js/pacientes.js"></script> -->
+</main>
+
+  <!-- ✅ PIE -->
+  <footer>
+    <p>© 2026 Proyecto Movilidad Motorizada</p>
+  </footer>
+  <script type="module" src="js/pacientes.js"></script>
+  
+
+</body>
+
+</html>

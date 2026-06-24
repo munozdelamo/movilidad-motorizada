@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Proyecto Movilidad Motorizada – Usuarios</title>
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body>
+
+    <!-- ✅ ENCABEZADO -->
+    <header>
+        <div class="top-logos">
+            <img src="bienestar.jpg">
+            <img src="maestre.jpg">
+            <img src="educacion.jpg">
+        </div>
+        <div class="title-container">
+            <h1>Proyecto de Movilidad Motorizada</h1>
+            <h2>Gestión de usuarios (fisioterapeutas)</h2>
+        </div>
+    </header>
+
+    <!-- ✅ MENÚ -->
+    <nav class="menu">
+        <ul>
+            <li>
+      
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+          style="vertical-align: middle; margin-right: 6px;"
+        >
+          <path d="M12 12c2.7 0 4.5-2 4.5-4.5S14.7 3 12 3 
+                   7.5 5 7.5 7.5 9.3 12 12 12zm0 2
+                   c-3 0-9 1.5-9 4.5V21h18v-2.5
+                   c0-3-6-4.5-9-4.5z"/>
+        </svg>
+        <span id="usuarioSesion"></span>
+        <button id="cerrarSesionBtn" class="btn-logout">
+          ⛔ Logout
+        </button>
+      
+    </li>
+        </ul>
+    </nav>
+
+    <!-- ✅ CONTENIDO -->
+    <main>
+
+        <h2 class="titulo-blanco">👨‍⚕️ Gestión de fisioterapeutas</h2>
+
+        <section class="charts-container">
+
+            <!-- ➕ ALTA / MODIFICACIÓN -->
+            <article>
+                <form id="usuarioForm">
+                    <h3 id="formTitle">Alta de usuario</h3>
+
+                    <input type="hidden" id="usuarioId">
+
+                    <div class="form-group">
+                        <label for="nombreUsuario">Nombre</label>
+                        <input type="text" id="nombreUsuario" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sedeSelect">Centro donde trabaja</label>
+                        <select id="sedeSelect" required>
+                            <option value="">Cargando sedes...</option>
+                        </select>
+                    </div>
+
+
+                    <button class="btn-primary">💾 Guardar usuario</button>
+                </form>
+            </article>
+
+            <!-- 📋 LISTADO -->
+            <article>
+                <h3>Usuarios registrados</h3>
+                <ul id="listaUsuarios" class="grid-sedes"></ul>
+            </article>
+
+        </section>
+
+    </main>
+
+    <!-- ✅ PIE -->
+    <footer>
+        <p>© 2026 Proyecto Movilidad Motorizada</p>
+    </footer>
+
+    <script src="js/usuarios.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+</body>
+
+</html>

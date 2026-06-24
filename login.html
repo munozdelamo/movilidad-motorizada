@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Proyecto Movilidad Motorizada – Login</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body>
+
+  <!-- ✅ ENCABEZADO (igual que el resto) -->
+  <header>
+    <div class="top-logos">
+      <img src="bienestar.jpg" alt="Consejería de Bienestar Social">
+      <img src="maestre.jpg" alt="IES Maestre de Calatrava">
+      <img src="educacion.jpg" alt="Consejería de Educación">
+    </div>
+    <div class="title-container">
+      <h1>Proyecto de Movilidad Motorizada</h1>
+      <h2>Acceso a la aplicación</h2>
+    </div>
+  </header>
+
+  <!-- ✅ CONTENIDO PRINCIPAL (sin menú) -->
+  <main class="login-main">
+
+    <!-- Imagen -->
+    <div class="login-image">
+      <img src="img/login.jpg" alt="Movilidad motorizada">
+    </div>
+
+    <!-- Formulario centrado -->
+    <div class="login-form">
+      <form id="loginForm">
+
+        <div class="form-group">
+          <label for="usuario">Usuario</label>
+          <input type="text" id="usuario" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" required>
+        </div>
+
+        <button class="btn-primary" type="submit">
+          🔐 Iniciar sesión
+        </button>
+
+        <p id="loginError" class="error-msg"></p>
+      </form>
+    </div>
+
+  </main>
+
+  <!-- ✅ PIE (igual que el resto) -->
+  <footer>
+    <p>© 2026 Proyecto Movilidad Motorizada</p>
+  </footer>
+
+  <script type="module" src="js/login.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+
+  <!-- 🔒 MODAL CAMBIO CONTRASEÑA -->
+<div id="passwordModal" class="modal hidden">
+  <div class="modal-content">
+    <h2>Cambio obligatorio de contraseña</h2>
+    <p>Es la primera vez que accedes. Debes establecer una contraseña nueva.</p>
+
+    <form id="passwordForm">
+      <div class="form-group">
+        <label>Nueva contraseña</label>
+        <input type="password" id="password1" required minlength="8">
+      </div>
+
+      <div class="form-group">
+        <label>Repetir contraseña</label>
+        <input type="password" id="password2" required minlength="8">
+      </div>
+
+      <button class="btn-primary">Guardar contraseña</button>
+      <p id="passwordMsg" class="error-msg"></p>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>
