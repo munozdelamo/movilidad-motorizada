@@ -4,7 +4,8 @@ import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.22.2
 
 // ✅ Configuración de tu proyecto (ajusta si es necesario)
 const firebaseConfig = {
-    databaseURL: "https://movilidad-motorizada-default-rtdb.europe-west1.firebasedatabase.app/"
+    //databaseURL: "https://movilidad-motorizada-default-rtdb.europe-west1.firebasedatabase.app/"
+    databaseURL: "https://proyecto-movilidad-18726-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 const listaEnlaces = ["sedes.html", "pacientes.html", "gestion.html"];
 const nombreEnlaces = ["Sedes", "Pacientes", "Gestión"];
@@ -58,18 +59,6 @@ function mostrarPacientes() {
     const lista = document.getElementById("listaPacientes");
     lista.innerHTML = "";
 
-    /*const pacientesFiltrados = pacientes.filter(p => p.sede === usuario.sede);
-
-    pacientesFiltrados.forEach(p => {
-        const li = document.createElement("li");
-        console.log("Paciente filtrado:", p); // Depuración
-        li.textContent = p.nombre;
-        lista.appendChild(li);
-    });
-
-    if (pacientesFiltrados.length === 0) {
-        lista.innerHTML = "<li>No hay pacientes en tu sede</li>";
-    }*/
    cargarPacientes();
 }
 
@@ -105,6 +94,7 @@ function establecerUsuario() {
     }
 }
 window.verVideosPaciente = function (id) {
+    localStorage.setItem("pacienteSeleccionado", id);
     window.location.href = "videos.html";
 }
 /* ===============================

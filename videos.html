@@ -7,80 +7,6 @@
   <!-- Estilos del proyecto -->
   <link rel="stylesheet" href="css/estilos.css" />
 
-  <!-- Firebase + lógica de vídeos -->
-  <script type="module">
-    import { initializeApp } from
-      "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import {
-      getStorage,
-      ref,
-      listAll,
-      getDownloadURL
-    } from
-      "https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js";
-
-    const firebaseConfig = {
-      databaseURL:
-        "https://movilidad-motorizada-default-rtdb.europe-west1.firebasedatabase.app/"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const storage = getStorage(app);
-
-    async function cargarVideos() {
-      const contenedor = document.getElementById("videos-container");
-
-      // Carpeta raíz de vídeos en Firebase Storage
-      const rootRef = ref(storage, "videos");
-
-      try {
-        const usuarios = await listAll(rootRef);
-
-        if (usuarios.prefixes.length === 0) {
-          contenedor.textContent = "No hay vídeos disponibles.";
-          return;
-        }
-
-        for (const carpetaUsuario of usuarios.prefixes) {
-          const tituloUsuario = document.createElement("h3");
-          tituloUsuario.textContent = `📁 Usuario: ${carpetaUsuario.name}`;
-          contenedor.appendChild(tituloUsuario);
-
-          const listaVideos = await listAll(carpetaUsuario);
-
-          const grid = document.createElement("div");
-          grid.className = "videos-grid";
-
-          for (const item of listaVideos.items) {
-            const url = await getDownloadURL(item);
-
-            const videoBox = document.createElement("div");
-            videoBox.className = "video-box";
-
-            const video = document.createElement("video");
-            video.src = url;
-            video.controls = true;
-
-            const nombre = document.createElement("p");
-            nombre.textContent = item.name;
-
-            videoBox.appendChild(video);
-            videoBox.appendChild(nombre);
-            grid.appendChild(videoBox);
-          }
-
-          contenedor.appendChild(grid);
-        }
-      } catch (e) {
-        console.error(e);
-        contenedor.textContent =
-          "Error cargando los vídeos desde Firebase Storage";
-      }
-    }
-
-    cargarVideos();
-  </script>
-
   <style>
     /* Reglas específicas solo para vídeos */
     .videos-grid {
@@ -156,6 +82,6 @@
 <footer>
   <p>© 2026 Proyecto Movilidad Motorizada</p>
 </footer>
-
+<script type="module" src="js/videos.js"></script>
 </body>
 </html>

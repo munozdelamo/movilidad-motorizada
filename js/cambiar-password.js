@@ -34,9 +34,9 @@ function encriptarPassword(password) {
 
 const usuarioActivo = localStorage.getItem("usuarioActivo");
 
-const BASE_URL =
-  "https://movilidad-motorizada-default-rtdb.europe-west1.firebasedatabase.app/usuarios";
-
+//const BASE_URL =
+//  "https://movilidad-motorizada-default-rtdb.europe-west1.firebasedatabase.app/usuarios";
+const BASE_URL =  "https://proyecto-movilidad-18726-default-rtdb.europe-west1.firebasedatabase.app/usuarios";
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 

@@ -42,8 +42,8 @@ function comprobarSesion() {
  * 1. CONSTANTES Y CONFIGURACIÓN
  *************************************************/
 Chart.defaults.devicePixelRatio = window.devicePixelRatio || 1;
-const BASE_URL = "https://movilidad-motorizada-default-rtdb.europe-west1.firebasedatabase.app";
-
+//const BASE_URL = "https://movilidad-motorizada-default-rtdb.europe-west1.firebasedatabase.app";
+const BASE_URL = "https://proyecto-movilidad-18726-default-rtdb.europe-west1.firebasedatabase.app";
 // Variable global para la gráfica de tiempo, así podemos destruirla y crear una nueva al cambiar de usuario
 
 /*************************************************

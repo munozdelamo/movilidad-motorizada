@@ -8,8 +8,9 @@ function desencriptarPassword(passwordCifrada) {
   return bytes.toString(CryptoJS.enc.Utf8);
 }
 
-const BASE_URL =
-  "https://movilidad-motorizada-default-rtdb.europe-west1.firebasedatabase.app/usuarios";
+//const BASE_URL =
+//  "https://movilidad-motorizada-default-rtdb.europe-west1.firebasedatabase.app/usuarios";
+const BASE_URL =  "https://proyecto-movilidad-18726-default-rtdb.europe-west1.firebasedatabase.app/usuarios";
 
 const form = document.getElementById("loginForm");
 const errorMsg = document.getElementById("loginError");
